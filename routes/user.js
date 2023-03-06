@@ -54,9 +54,52 @@ router.get("/:id", async (req, res)=>{
 })
 
 //follow user
+router.put("/:id/follow", async (req, res)=>{
+    if (req.body.userId !== req.params.id) {
+        
+        try {
+            const user = await Users.findById(req.params.id);
+            const currentUser = await Users.findById(req.body.userId);
+            if (!user.followers.includes(req.body.userId)) {
+                await user.updateOne({$push: {followers : req.body.userId} });
+                await currentUser.updateOne({$push: {following : req.params.id}})
+                res.status(200).json("user has been followed");
+            }else{
+                res.status(403).json("you have already following this account");
+            }
 
+        } catch (error) {
+            res.status(404).json(error);
+        }
+        
+    } else {
+        res.status(403).json("you can't following yourself account")
+    }
+})
 
 //unfollow user 
+router.put("/:id/unfollow", async (req, res)=>{
+    if (req.body.userId !== req.params.id) {
+        
+        try {
+            const user = await Users.findById(req.params.id);
+            const currentUser = await Users.findById(req.body.userId);
+            if (user.followers.includes(req.body.userId)) {
+                await user.updateOne({$pull: {followers : req.body.userId} });
+                await currentUser.updateOne({$pull: {following : req.params.id}})
+                res.status(200).json("user has been unfollowed");
+            }else{
+                res.status(403).json("you wont follow this account");
+            }
+
+        } catch (error) {
+            res.status(404).json(error);
+        }
+        
+    } else {
+        res.status(403).json("you can't unfollowing yourself account")
+    }
+})
 
 
 
